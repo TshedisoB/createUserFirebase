@@ -1,75 +1,62 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import {
-  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import { FIREBASE_AUTH } from "./FirebaseConfig";
 
-
-const auth = getAuth();
-const Stack = createStackNavigator();
-
-const HomeScreen = ({ route }) => {
-  const { user } = route.params;
-
-  return (
-    <View style={styles.container}>
-      <Text>Welcome to the Home Screen! {user.email}</Text>
-    </View>
-  );
-};
-
-const LoginScreen = ({ navigation }) => {
+const App = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const auth = FIREBASE_AUTH;
 
-  const handleLogin = () => {
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log(user);
-        navigation.navigate({
-          name: "Home",
-          params: { user },
-        });
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log("errorCode:", errorCode, "errorMessage:", errorMessage);
-      });
+  const handleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+      console.log("User logged in:", user);
+    } catch (error) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error("Login error - Code:", errorCode, "Message:", errorMessage);
+    }
   };
 
-  const handleSignUp = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log(user);
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log("errorCode:", errorCode, "errorMessage:", errorMessage);
-      });
+  const handleSignUp = async () => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+      console.log("User signed up:", user);
+    } catch (error) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error(
+        "Sign up error - Code:",
+        errorCode,
+        "Message:",
+        errorMessage
+      );
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        onChangeText={(text) => setEmail(text)}
-        placeholder="Enter your email"
-      />
+      <TextInput style={styles.input} onChangeText={(text) => setEmail(text)} />
       <Text style={styles.label}>Password</Text>
       <TextInput
         style={styles.input}
         onChangeText={(text) => setPassword(text)}
         secureTextEntry={true}
-        placeholder="Enter your password"
       />
       <Button title="Login" onPress={handleLogin} />
       <Button title="Sign Up" onPress={handleSignUp} />
@@ -77,33 +64,21 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const App = () => {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-};
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
     padding: 16,
+    top: 100,
   },
   label: {
     fontSize: 16,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   input: {
     height: 40,
     borderColor: "gray",
     borderWidth: 1,
     marginBottom: 16,
-    paddingHorizontal: 8,
+    padding: 8,
   },
 });
 
